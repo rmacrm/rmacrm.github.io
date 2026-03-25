@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Court Vision — NBA Fantasy Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0e14; --surface:#12161f; --surface2:#1a1f2c; --surface3:#222840;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.14);
+  --accent:#e8ff47; --green:#3bf5a0; --orange:#ff6b47; --purple:#a78bfa; --blue:#60a5fa;
+  --text:#f0f0f0; --muted:#6b7280; --dim:#9ca3af;
+  --mono:'DM Mono',monospace; --display:'Syne',sans-serif; --body:'Inter',sans-serif;
+  --r:12px; --rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;line-height:1.6;min-height:100vh;}
+header{padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;background:rgba(11,14,20,0.95);backdrop-filter:blur(16px);}
+.logo{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:9px;color:var(--text);}
+.logo-mark{width:26px;height:26px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:14px;height:14px;}
+.logo em{color:var(--accent);font-style:normal;}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.pill{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);font-family:var(--mono);font-size:11px;color:var(--dim);}
+.pill.ok{border-color:rgba(59,245,160,.35);background:rgba(59,245,160,.06);color:var(--green);}
+.pill.warn{border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.05);color:var(--accent);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+.pill.ok .dot{background:var(--green);animation:blink 2s infinite;}
+.pill.warn .dot{background:var(--accent);animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.layout{display:grid;grid-template-columns:252px 1fr;min-height:calc(100vh - 56px);}
+.sidebar{border-right:1px solid var(--border);padding:18px 14px;display:flex;flex-direction:column;gap:16px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;}
+.main{padding:28px 30px;overflow-y:auto;max-height:calc(100vh - 56px);}
+.slabel{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;border:none;background:transparent;color:var(--dim);font-family:var(--body);font-size:13px;width:100%;text-align:left;transition:all .15s;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(232,255,71,.1);color:var(--accent);}
+.nav-item .ico{font-size:15px;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--orange);color:#fff;font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:10px;}
+.page{display:none;animation:fadeIn .2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.pg-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+.pg-title{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.5px;}
+.pg-title em{color:var(--accent);font-style:normal;}
+.pg-sub{color:var(--dim);font-size:13px;margin-top:2px;}
+.pg-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;}
+.card:last-child{margin-bottom:0;}
+.card-title{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:12px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:var(--rs);border:none;cursor:pointer;font-family:var(--display);font-size:13px;font-weight:600;transition:all .15s;white-space:nowrap;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-accent{background:var(--accent);color:#0b0e14;}
+.btn-accent:hover:not(:disabled){background:#d4eb1a;transform:translateY(-1px);}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--dim);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-full{width:100%;}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+.field:last-child{margin-bottom:0;}
+.field label{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--body);font-size:13px;padding:8px 11px;outline:none;transition:border-color .2s;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field select option{background:var(--surface2);}
+.field textarea{resize:vertical;font-family:var(--mono);font-size:12px;line-height:1.7;}
+.help{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.help a{color:var(--accent);text-decoration:none;}
+.roster-grid{display:flex;flex-direction:column;gap:4px;}
+.roster-slot{display:grid;grid-template-columns:52px 1fr 90px 28px;gap:10px;align-items:center;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);transition:border-color .15s;}
+.roster-slot:hover{border-color:var(--border2);}
+.roster-slot.filled{border-color:rgba(59,245,160,.2);}
+.roster-slot.injured{border-color:rgba(255,107,71,.25);}
+.slot-label{font-family:var(--mono);font-size:11px;font-weight:500;padding:3px 7px;border-radius:4px;text-align:center;display:inline-block;}
+.slot-PG{background:rgba(232,255,71,.12);color:var(--accent);}
+.slot-SG{background:rgba(59,245,160,.12);color:var(--green);}
+.slot-SF{background:rgba(167,139,250,.15);color:var(--purple);}
+.slot-PF{background:rgba(251,146,60,.15);color:#fb923c;}
+.slot-C{background:rgba(244,114,182,.15);color:#f472b6;}
+.slot-G{background:rgba(232,255,71,.08);color:#c8dc2e;}
+.slot-F{background:rgba(167,139,250,.1);color:#c4b5fd;}
+.slot-UTIL,.slot-BN{background:var(--surface3);color:var(--dim);}
+.player-input-wrap{position:relative;}
+.player-input{background:transparent!important;border:none!important;padding:0!important;font-size:13px!important;font-weight:500;color:var(--text)!important;width:100%;outline:none!important;}
+.player-input::placeholder{color:var(--muted)!important;font-weight:400;}
+.player-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.ac-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);z-index:100;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.ac-item{padding:8px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:space-between;transition:background .1s;}
+.ac-item:hover{background:var(--surface2);}
+.ac-item-name{font-weight:500;}
+.ac-item-meta{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.status-select{background:var(--surface3)!important;border:1px solid var(--border)!important;border-radius:5px!important;padding:4px 6px!important;font-size:11px!important;font-family:var(--mono)!important;color:var(--dim)!important;cursor:pointer;width:auto!important;}
+.status-select.gtd{color:#fb923c!important;border-color:rgba(251,146,60,.3)!important;}
+.status-select.out{color:var(--orange)!important;border-color:rgba(255,107,71,.3)!important;}
+.status-select.active{color:var(--green)!important;border-color:rgba(59,245,160,.25)!important;}
+.remove-btn{width:24px;height:24px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transition:all .15s;flex-shrink:0;}
+.remove-btn:hover{border-color:var(--orange);color:var(--orange);}
+.bench-divider{display:flex;align-items:center;gap:10px;margin:10px 0 6px;font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.bench-divider::before,.bench-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
+.waiver-paste-area{font-family:var(--mono);font-size:12px;line-height:1.8;min-height:180px;}
+.waiver-parsed{display:flex;flex-direction:column;gap:3px;margin-top:12px;}
+.waiver-item{display:flex;align-items:center;gap:10px;padding:7px 11px;background:var(--surface2);border-radius:var(--rs);font-size:12px;}
+.waiver-item-name{flex:1;font-weight:500;}
+.waiver-item-meta{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.waiver-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;}
+.waiver-rm:hover{color:var(--orange);}
+.ai-layout{display:grid;grid-template-columns:1fr 300px;gap:18px;}
+.ai-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;height:600px;}
+.ai-hdr{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.ai-pulse{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:blink 1.5s infinite;}
+.ai-hdr-title{font-family:var(--display);font-size:14px;font-weight:600;}
+.ai-msgs{flex:1;overflow-y:auto;padding:14px 15px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+.ai-msgs::-webkit-scrollbar{width:3px;}
+.ai-msgs::-webkit-scrollbar-thumb{background:var(--border2);}
+.msg{display:flex;gap:8px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.av{width:26px;height:26px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+.av.ai{background:rgba(232,255,71,.15);color:var(--accent);font-family:var(--mono);}
+.av.user{background:var(--surface2);color:var(--dim);}
+.bubble{max-width:84%;padding:9px 13px;border-radius:10px;font-size:13px;line-height:1.65;}
+.msg.ai .bubble{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.msg.user .bubble{background:rgba(232,255,71,.08);border:1px solid rgba(232,255,71,.18);}
+.bubble strong{color:var(--accent);font-weight:500;}
+.bubble ul{padding-left:14px;margin:5px 0 2px;}
+.bubble li{margin-bottom:3px;}
+.typing{display:flex;gap:4px;align-items:center;padding:3px 0;}
+.typing span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:tdot .9s infinite;}
+.typing span:nth-child(2){animation-delay:.15s;}
+.typing span:nth-child(3){animation-delay:.3s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.ai-footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.ai-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--body);font-size:13px;padding:8px 11px;outline:none;resize:none;height:38px;transition:border-color .2s;}
+.ai-input:focus{border-color:var(--accent);}
+.ai-input::placeholder{color:var(--muted);}
+.send-btn{width:38px;height:38px;background:var(--accent);border:none;border-radius:var(--rs);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.send-btn:hover{background:#d4eb1a;}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;}
+.send-btn svg{width:14px;height:14px;fill:#0b0e14;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.chip{padding:5px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:11px;font-family:var(--mono);cursor:pointer;transition:all .15s;}
+.chip:hover{border-color:var(--accent);color:var(--accent);}
+.ctx-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.ctx-player{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);}
+.ctx-player:last-child{border-bottom:none;}
+.ctx-name{font-size:12px;font-weight:500;flex:1;}
+.ctx-status{font-size:10px;font-family:var(--mono);}
+.ctx-status.gtd{color:#fb923c;}
+.ctx-status.out{color:var(--orange);}
+.readiness{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;margin-bottom:18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.ready-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);}
+.ready-item.done{color:var(--green);}
+.ready-item.warn{color:var(--accent);cursor:pointer;}
+.ready-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--muted);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.ready-item.done .ready-check{background:rgba(59,245,160,.15);border-color:var(--green);color:var(--green);}
+.ready-item.warn .ready-check{background:rgba(232,255,71,.1);border-color:var(--accent);color:var(--accent);}
+.info-box{background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:var(--rs);padding:11px 14px;font-size:12px;color:#93c5fd;line-height:1.6;margin-bottom:14px;}
+.info-box strong{color:var(--blue);}
+.step-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.step-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;flex:1;min-width:140px;}
+.step-n{font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:5px;}
+.step-t{font-size:13px;font-weight:500;margin-bottom:3px;}
+.step-d{font-size:11px;color:var(--dim);line-height:1.5;}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--accent);border-radius:var(--rs);padding:9px 14px;font-family:var(--mono);font-size:12px;color:var(--accent);transform:translateY(60px);opacity:0;transition:all .3s;z-index:999;pointer-events:none;}
+#toast.show{transform:translateY(0);opacity:1;}
+hr{border:none;border-top:1px solid var(--border);margin:16px 0;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#0b0e14" stroke-width="1.4"/><path d="M7 1.5C8.5 4 8.5 10 7 12.5" stroke="#0b0e14" stroke-width=".9" fill="none"/><line x1="1.5" y1="7" x2="12.5" y2="7" stroke="#0b0e14" stroke-width=".9"/><path d="M2.5 4.5C4 5 10 5 11.5 4.5" stroke="#0b0e14" stroke-width=".7" fill="none"/><path d="M2.5 9.5C4 9 10 9 11.5 9.5" stroke="#0b0e14" stroke-width=".7" fill="none"/></svg>
+    </div>
+    Court<em>Vision</em>
+  </div>
+  <div class="hdr-right">
+    <div class="pill" id="rosterPill"><div class="dot"></div><span id="rosterPillTxt">No roster</span></div>
+    <div class="pill" id="waiverPill"><div class="dot"></div><span id="waiverPillTxt">No waivers</span></div>
+    <div class="pill" id="keyPill"><div class="dot"></div><span id="keyPillTxt">No API key</span></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div>
+      <div class="slabel">Menu</div>
+      <button class="nav-item active" onclick="nav('roster')" id="nav-roster"><span class="ico">📋</span> My Roster</button>
+      <button class="nav-item" onclick="nav('waivers')" id="nav-waivers"><span class="ico">🔄</span> Waiver Wire</button>
+      <button class="nav-item" onclick="nav('advisor')" id="nav-advisor"><span class="ico">🤖</span> AI Advisor <span class="nav-badge" id="advBadge" style="display:none">!</span></button>
+      <button class="nav-item" onclick="nav('settings')" id="nav-settings"><span class="ico">⚙️</span> Settings</button>
+    </div>
+    <div style="margin-top:auto;">
+      <div class="slabel">Status</div>
+      <div style="font-size:12px;color:var(--dim);line-height:2.1;">
+        <div>🏀 <span id="sbRosterCount">0</span> players on roster</div>
+        <div>🔄 <span id="sbWaiverCount">0</span> waiver players</div>
+        <div>🤖 AI: <span id="sbAiStatus" style="color:var(--muted)">not set up</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-full" style="margin-top:10px;" onclick="loadDemo()">🏀 Load Demo Data</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ROSTER PAGE -->
+    <div class="page active" id="page-roster">
+      <div class="pg-head">
+        <div>
+          <div class="pg-title">My <em>Roster</em></div>
+          <div class="pg-sub">Enter your CBS lineup — type each player's name</div>
+        </div>
+        <div class="pg-actions">
+          <button class="btn btn-ghost btn-sm" onclick="clearRoster()">✕ Clear</button>
+          <button class="btn btn-accent btn-sm" onclick="saveRoster();nav('advisor');triggerAdvice('optimize')">🤖 Optimize Lineup</button>
+        </div>
+      </div>
+      <div class="info-box">
+        <strong>How to fill this in:</strong> Open CBS Fantasy Basketball in another tab, look at your lineup, and type each player's name into the matching slot. Autocomplete will recognize most NBA players automatically.
+      </div>
+      <div class="card">
+        <div class="card-title">⭐ Starting Lineup</div>
+        <div class="roster-grid" id="starterSlots"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🪑 Bench</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:12px;">Add bench players so the AI knows your full options.</div>
+        <div class="roster-grid" id="benchSlots"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="addBenchSlot()">+ Add bench player</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-accent" onclick="saveRoster();toast('Roster saved!')">💾 Save Roster</button>
+        <button class="btn btn-ghost" onclick="saveRoster();nav('waivers')">Next: Waiver Wire →</button>
+      </div>
+    </div>
+
+    <!-- WAIVERS PAGE -->
+    <div class="page" id="page-waivers">
+      <div class="pg-head">
+        <div>
+          <div class="pg-title">Waiver <em>Wire</em></div>
+          <div class="pg-sub">Paste your available players list from CBS</div>
+        </div>
+        <div class="pg-actions">
+          <button class="btn btn-accent btn-sm" onclick="nav('advisor');triggerAdvice('waivers')">🤖 Get Pickup Advice</button>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-box"><div class="step-n">STEP 1</div><div class="step-t">Go to CBS Fantasy</div><div class="step-d">Open your league and click Players or Add Players</div></div>
+        <div class="step-box"><div class="step-n">STEP 2</div><div class="step-t">Copy player names</div><div class="step-d">Select and copy the list — any format works</div></div>
+        <div class="step-box"><div class="step-n">STEP 3</div><div class="step-t">Paste below</div><div class="step-d">Hit Parse, then get AI rankings for your roster</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Paste Available Players</div>
+        <div class="field">
+          <label>Paste player names from CBS (one per line, comma-separated, or raw copy-paste — any format)</label>
+          <textarea class="waiver-paste-area" id="waiverPaste" placeholder="Paste your CBS waiver wire players here...
+
+Examples of formats that work:
+Immanuel Quickley
+Nic Claxton, Caris LeVert, Brook Lopez
+1. Josh Green (DAL) SF
+" rows="10"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-accent" onclick="parseWaivers()">Parse Players</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearWaivers()">✕ Clear</button>
+        </div>
+      </div>
+      <div id="waiverParsedCard" style="display:none;" class="card">
+        <div class="card-title">✅ <span id="waiverParsedCount">0</span> Players Ready</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:10px;">Remove any that are not actually available on your CBS waiver wire.</div>
+        <div class="waiver-parsed" id="waiverParsedList"></div>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-accent" onclick="saveWaivers();nav('advisor');triggerAdvice('waivers')">🤖 Rank These For My Team</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveWaivers();toast('Waiver list saved!')">💾 Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADVISOR PAGE -->
+    <div class="page" id="page-advisor">
+      <div class="pg-head">
+        <div>
+          <div class="pg-title">AI <em>Advisor</em></div>
+          <div class="pg-sub">Claude analyzes your roster and waiver wire</div>
+        </div>
+      </div>
+      <div class="readiness" id="readinessBar">
+        <div class="ready-item" id="ready-roster"><div class="ready-check"></div>Roster entered</div>
+        <div class="ready-item" id="ready-waivers"><div class="ready-check"></div>Waivers pasted</div>
+        <div class="ready-item" id="ready-key"><div class="ready-check"></div>API key set</div>
+      </div>
+      <div class="chips">
+        <button class="chip" onclick="triggerAdvice('optimize')">⚡ Optimize my lineup</button>
+        <button class="chip" onclick="triggerAdvice('waivers')">🔄 Best waiver adds</button>
+        <button class="chip" onclick="triggerAdvice('drops')">✂️ Who should I drop?</button>
+        <button class="chip" onclick="triggerAdvice('injuries')">🏥 Injury concerns</button>
+        <button class="chip" onclick="triggerAdvice('schedule')">📅 Schedule this week</button>
+        <button class="chip" onclick="triggerAdvice('full')">📊 Full team analysis</button>
+      </div>
+      <div class="ai-layout">
+        <div class="ai-panel">
+          <div class="ai-hdr">
+            <div class="ai-pulse"></div>
+            <div class="ai-hdr-title">Court Vision AI</div>
+            <div style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);">claude-sonnet-4-20250514</div>
+          </div>
+          <div class="ai-msgs" id="aiMsgs">
+            <div class="msg ai">
+              <div class="av ai">CV</div>
+              <div class="bubble">
+                Hey! I am your NBA fantasy advisor. Enter your roster and paste your waiver wire, then I can tell you:<br><br>
+                <strong>⚡ Exactly who to start</strong> each day this week<br>
+                <strong>🔄 Best waiver adds</strong> from your actual CBS list<br>
+                <strong>✂️ Who to drop</strong> from your bench<br>
+                <strong>📊 Full analysis</strong> of your whole team<br><br>
+                Use the quick buttons above, or just ask me anything.
+              </div>
+            </div>
+          </div>
+          <div class="ai-footer">
+            <textarea class="ai-input" id="aiInput" placeholder="Ask anything about your lineup..." rows="1" onkeydown="aiKey(event)"></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendMsg()">
+              <svg viewBox="0 0 16 16"><path d="M2 13.5L14 8 2 2.5v4.25L10 8l-8 1.25V13.5z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:12px;">
+            <div class="ctx-label">Your Roster (sent to AI)</div>
+            <div id="ctxRoster" style="font-size:12px;color:var(--dim);">No roster yet. <a href="#" onclick="nav('roster');return false;" style="color:var(--accent);">Add players</a></div>
+          </div>
+          <div class="card">
+            <div class="ctx-label">Waiver Wire</div>
+            <div id="ctxWaivers" style="font-size:12px;color:var(--dim);">No waivers yet. <a href="#" onclick="nav('waivers');return false;" style="color:var(--accent);">Paste list</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="pg-head">
+        <div><div class="pg-title"><em>Settings</em></div><div class="pg-sub">API key and league format</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🤖 Anthropic API Key</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:14px;">Powers all AI advice. Stored only in your browser — never sent anywhere except Anthropic.</div>
+        <div class="field">
+          <label>API Key</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+          <div class="help">Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — new accounts get free credits.</div>
+        </div>
+        <button class="btn btn-accent btn-sm" onclick="saveKey()">Save Key</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 League Format</div>
+        <div class="field">
+          <label>Scoring Type</label>
+          <select id="scoringType">
+            <option value="roto">Rotisserie (Roto)</option>
+            <option value="h2h_cats" selected>Head-to-Head Categories</option>
+            <option value="h2h_pts">Head-to-Head Points</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Number of Teams</label>
+          <input type="number" id="leagueSize" value="10" min="4" max="20">
+        </div>
+        <div class="field">
+          <label>Extra context for the AI (opponent info, trade offers, goals, etc.)</label>
+          <textarea id="extraContext" placeholder="e.g. My opponent this week is strong in rebounds and 3-pointers. I got a trade offer: my Tatum for their Embiid. Should I take it?" rows="4"></textarea>
+        </div>
+        <button class="btn btn-accent btn-sm" onclick="saveSettings();toast('Settings saved!')">Save Settings</button>
+      </div>
+      <div class="card">
+        <div class="card-title">🗑️ Clear Data</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:12px;">All data lives in your browser only.</div>
+        <button class="btn btn-ghost btn-sm" onclick="if(confirm('Clear everything?')){clearAll()}">Clear All Saved Data</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+const NBA = [
+  {n:'Luka Doncic',t:'DAL',p:'PG'},{n:'Tyrese Haliburton',t:'IND',p:'PG'},
+  {n:'Ja Morant',t:'MEM',p:'PG'},{n:'Trae Young',t:'ATL',p:'PG'},
+  {n:'Damian Lillard',t:'MIL',p:'PG'},{n:'Stephen Curry',t:'GSW',p:'PG'},
+  {n:'LaMelo Ball',t:'CHA',p:'PG'},{n:'De\'Aaron Fox',t:'SAC',p:'PG'},
+  {n:'Immanuel Quickley',t:'TOR',p:'PG'},{n:'Jalen Brunson',t:'NYK',p:'PG'},
+  {n:'Darius Garland',t:'CLE',p:'PG'},{n:'Josh Giddey',t:'OKC',p:'PG'},
+  {n:'Jordan Poole',t:'WAS',p:'PG'},{n:'Marcus Smart',t:'MEM',p:'PG'},
+  {n:'Tre Jones',t:'SAS',p:'PG'},{n:'Tyus Jones',t:'WAS',p:'PG'},
+  {n:'Reggie Jackson',t:'LAC',p:'PG'},{n:'Spencer Dinwiddie',t:'BRK',p:'PG'},
+  {n:'Devin Booker',t:'PHX',p:'SG'},{n:'Donovan Mitchell',t:'CLE',p:'SG'},
+  {n:'Jaylen Brown',t:'BOS',p:'SG'},{n:'Anthony Edwards',t:'MIN',p:'SG'},
+  {n:'Zach LaVine',t:'CHI',p:'SG'},{n:'Tyler Herro',t:'MIA',p:'SG'},
+  {n:'CJ McCollum',t:'NOP',p:'SG'},{n:'Shai Gilgeous-Alexander',t:'OKC',p:'SG'},
+  {n:'Kyrie Irving',t:'DAL',p:'SG'},{n:'James Harden',t:'LAC',p:'SG'},
+  {n:'Jalen Green',t:'HOU',p:'SG'},{n:'Caris LeVert',t:'CLE',p:'SG'},
+  {n:'Anfernee Simons',t:'POR',p:'SG'},{n:'Jordan Clarkson',t:'UTA',p:'SG'},
+  {n:'Klay Thompson',t:'GSW',p:'SG'},{n:'Aaron Wiggins',t:'OKC',p:'SG'},
+  {n:'Cam Thomas',t:'BRK',p:'SG'},{n:'Talen Horton-Tucker',t:'UTA',p:'SG'},
+  {n:'Jayson Tatum',t:'BOS',p:'SF'},{n:'LeBron James',t:'LAL',p:'SF'},
+  {n:'Kevin Durant',t:'PHX',p:'SF'},{n:'Mikal Bridges',t:'NYK',p:'SF'},
+  {n:'OG Anunoby',t:'TOR',p:'SF'},{n:'Franz Wagner',t:'ORL',p:'SF'},
+  {n:'Paolo Banchero',t:'ORL',p:'SF'},{n:'Brandon Ingram',t:'NOP',p:'SF'},
+  {n:'RJ Barrett',t:'NYK',p:'SF'},{n:'Andrew Wiggins',t:'GSW',p:'SF'},
+  {n:'Tobias Harris',t:'PHI',p:'SF'},{n:'Josh Green',t:'DAL',p:'SF'},
+  {n:'Saddiq Bey',t:'ATL',p:'SF'},{n:'Aaron Gordon',t:'DEN',p:'SF'},
+  {n:'Jerami Grant',t:'POR',p:'SF'},{n:'Scottie Barnes',t:'TOR',p:'SF'},
+  {n:'Giannis Antetokounmpo',t:'MIL',p:'PF'},{n:'Anthony Davis',t:'LAL',p:'PF'},
+  {n:'Julius Randle',t:'NYK',p:'PF'},{n:'Pascal Siakam',t:'TOR',p:'PF'},
+  {n:'Zion Williamson',t:'NOP',p:'PF'},{n:'Karl-Anthony Towns',t:'MIN',p:'PF'},
+  {n:'Domantas Sabonis',t:'SAC',p:'PF'},{n:'Lauri Markkanen',t:'UTA',p:'PF'},
+  {n:'Evan Mobley',t:'CLE',p:'PF'},{n:'Jaren Jackson Jr.',t:'MEM',p:'PF'},
+  {n:'Keegan Murray',t:'SAC',p:'PF'},{n:'Cam Johnson',t:'BRK',p:'PF'},
+  {n:'Jalen Williams',t:'OKC',p:'PF'},{n:'John Collins',t:'UTA',p:'PF'},
+  {n:'Nikola Jokic',t:'DEN',p:'C'},{n:'Joel Embiid',t:'PHI',p:'C'},
+  {n:'Bam Adebayo',t:'MIA',p:'C'},{n:'Rudy Gobert',t:'MIN',p:'C'},
+  {n:'Myles Turner',t:'IND',p:'C'},{n:'Brook Lopez',t:'MIL',p:'C'},
+  {n:'Kristaps Porzingis',t:'BOS',p:'C'},{n:'Nikola Vucevic',t:'CHI',p:'C'},
+  {n:'Daniel Gafford',t:'WAS',p:'C'},{n:'Ivica Zubac',t:'LAC',p:'C'},
+  {n:'Nic Claxton',t:'BRK',p:'C'},{n:'Deandre Ayton',t:'POR',p:'C'},
+  {n:'Walker Kessler',t:'UTA',p:'C'},{n:'Clint Capela',t:'ATL',p:'C'},
+  {n:'Kevon Looney',t:'GSW',p:'C'},{n:'Isaiah Hartenstein',t:'NYK',p:'C'},
+  {n:'Alperen Sengun',t:'HOU',p:'C'},{n:'Victor Wembanyama',t:'SAS',p:'C'},
+  {n:'Chet Holmgren',t:'OKC',p:'C'},{n:'Mitchell Robinson',t:'NYK',p:'C'},
+];
+
+const SLOTS = ['PG','SG','SF','PF','C','G','F','UTIL'];
+function lsJ(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function svJ(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+let S = {
+  starters: lsJ('cv_st') || SLOTS.map(s=>({slot:s,name:'',team:'',pos:'',status:'active'})),
+  bench: lsJ('cv_bn') || [],
+  waivers: lsJ('cv_wv') || [],
+  apiKey: localStorage.getItem('cv_key') || '',
+  scoring: localStorage.getItem('cv_sc') || 'h2h_cats',
+  leagueSize: localStorage.getItem('cv_ls') || '10',
+  extraCtx: localStorage.getItem('cv_ex') || '',
+  chat: [],
+};
+
+window.addEventListener('DOMContentLoaded',()=>{
+  buildStarters(); buildBench();
+  if(S.apiKey) document.getElementById('apiKeyInput').value=S.apiKey;
+  document.getElementById('scoringType').value=S.scoring;
+  document.getElementById('leagueSize').value=S.leagueSize;
+  document.getElementById('extraContext').value=S.extraCtx;
+  if(S.waivers.length) renderParsed();
+  updatePills(); updateSB();
+});
+
+function nav(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id==='advisor'){updateCtx();updateReady();document.getElementById('advBadge').style.display='none';}
+  if(id==='waivers'&&S.waivers.length) renderParsed();
+}
+
+function slotHTML(s,i,type){
+  const sc='slot-'+s.slot;
+  const filled=s.name?'filled':'';
+  const inj=s.status==='out'?'injured':'';
+  return `<div class="roster-slot ${filled} ${inj}" id="${type}-slot-${i}">
+    <div><span class="slot-label ${sc}">${s.slot}</span></div>
+    <div class="player-input-wrap">
+      <input class="player-input" type="text" placeholder="Player name..." value="${s.name.replace(/"/g,'&quot;')}"
+        oninput="onInput(this,'${type}',${i})" onfocus="showAC(this,'${type}',${i})" onblur="hideAC('${type}',${i})" autocomplete="off">
+      <div class="player-sub" id="${type}-sub-${i}">${s.team&&s.pos?s.team+' · '+s.pos:''}</div>
+      <div class="ac-drop" id="ac-${type}-${i}" style="display:none"></div>
+    </div>
+    <select class="status-select ${s.status}" onchange="onStatus(this,'${type}',${i})">
+      <option value="active"${s.status==='active'?' selected':''}>Active</option>
+      <option value="gtd"${s.status==='gtd'?' selected':''}>GTD</option>
+      <option value="out"${s.status==='out'?' selected':''}>OUT</option>
+    </select>
+    ${type==='bench'?`<button class="remove-btn" onclick="rmBench(${i})">&#215;</button>`:'<div></div>'}
+  </div>`;
+}
+
+function buildStarters(){document.getElementById('starterSlots').innerHTML=S.starters.map((s,i)=>slotHTML(s,i,'starter')).join('');}
+function buildBench(){document.getElementById('benchSlots').innerHTML=S.bench.map((s,i)=>slotHTML(s,i,'bench')).join('');}
+
+function onInput(el,type,i){
+  const v=el.value.trim();
+  const arr=type==='starter'?S.starters:S.bench;
+  arr[i].name=v;
+  const m=NBA.find(p=>p.n.toLowerCase()===v.toLowerCase());
+  arr[i].team=m?m.t:''; arr[i].pos=m?m.p:'';
+  document.getElementById(type+'-sub-'+i).textContent=arr[i].team?arr[i].team+' · '+arr[i].pos:'';
+  showAC(el,type,i); updateSlot(type,i); updatePills(); updateSB();
+}
+
+function showAC(el,type,i){
+  const v=el.value.trim().toLowerCase();
+  const drop=document.getElementById('ac-'+type+'-'+i);
+  if(!v||v.length<2){drop.style.display='none';return;}
+  const ms=NBA.filter(p=>p.n.toLowerCase().includes(v)).slice(0,7);
+  if(!ms.length){drop.style.display='none';return;}
+  drop.innerHTML=ms.map(p=>`<div class="ac-item" onmousedown="selPlayer('${p.n.replace(/'/g,"\\'")}','${p.t}','${p.p}','${type}',${i})"><span class="ac-item-name">${p.n}</span><span class="ac-item-meta">${p.t} · ${p.p}</span></div>`).join('');
+  drop.style.display='block';
+}
+function hideAC(type,i){setTimeout(()=>{const d=document.getElementById('ac-'+type+'-'+i);if(d)d.style.display='none';},180);}
+function selPlayer(name,team,pos,type,i){
+  const arr=type==='starter'?S.starters:S.bench;
+  arr[i].name=name;arr[i].team=team;arr[i].pos=pos;
+  const inp=document.querySelector(`input[onfocus*="'${type}',${i}"]`);
+  if(inp)inp.value=name;
+  document.getElementById(type+'-sub-'+i).textContent=team+' · '+pos;
+  document.getElementById('ac-'+type+'-'+i).style.display='none';
+  updateSlot(type,i); updatePills(); updateSB();
+}
+function onStatus(el,type,i){
+  const arr=type==='starter'?S.starters:S.bench;
+  arr[i].status=el.value; el.className='status-select '+el.value; updateSlot(type,i);
+}
+function updateSlot(type,i){
+  const arr=type==='starter'?S.starters:S.bench;
+  const el=document.getElementById(type+'-slot-'+i);
+  if(!el)return;
+  el.classList.remove('filled','injured');
+  if(arr[i].name) el.classList.add(arr[i].status==='out'?'injured':'filled');
+}
+function addBenchSlot(){S.bench.push({slot:'BN',name:'',team:'',pos:'',status:'active'});buildBench();}
+function rmBench(i){S.bench.splice(i,1);buildBench();updatePills();updateSB();}
+function saveRoster(){
+  S.starters.forEach((s,i)=>{const el=document.querySelectorAll('#starterSlots .player-input')[i];if(el)s.name=el.value.trim();});
+  S.bench.forEach((s,i)=>{const el=document.querySelectorAll('#benchSlots .player-input')[i];if(el)s.name=el.value.trim();});
+  svJ('cv_st',S.starters);svJ('cv_bn',S.bench);updatePills();updateSB();
+}
+function clearRoster(){
+  if(!confirm('Clear all roster slots?'))return;
+  S.starters=SLOTS.map(s=>({slot:s,name:'',team:'',pos:'',status:'active'}));
+  S.bench=[];svJ('cv_st',S.starters);svJ('cv_bn',S.bench);
+  buildStarters();buildBench();updatePills();updateSB();toast('Roster cleared');
+}
+
+function parseWaivers(){
+  const raw=document.getElementById('waiverPaste').value.trim();
+  if(!raw){toast('Paste some players first');return;}
+  const lines=raw.split(/[\n,;|]+/).map(l=>l.trim()).filter(l=>l.length>2);
+  const cleaned=lines.map(l=>{
+    l=l.replace(/^\d+[\.\)]\s*/,'');
+    l=l.replace(/\s*\(.*?\)\s*/g,' ');
+    l=l.replace(/\s+(PG|SG|SF|PF|C|G|F|UTIL|BN)\s*$/i,'');
+    l=l.replace(/\s+[\d\.]+.*$/,'');
+    return l.trim();
+  }).filter(l=>l.length>2&&/[a-zA-Z]/.test(l));
+  const unique=[...new Set(cleaned)];
+  S.waivers=unique.map(name=>{
+    const m=NBA.find(p=>p.n.toLowerCase()===name.toLowerCase());
+    return{name:m?m.n:name,team:m?m.t:'?',pos:m?m.p:'?'};
+  });
+  svJ('cv_wv',S.waivers);renderParsed();updatePills();updateSB();
+  toast(S.waivers.length+' players parsed');
+}
+function renderParsed(){
+  const card=document.getElementById('waiverParsedCard');
+  if(!S.waivers.length){card.style.display='none';return;}
+  card.style.display='block';
+  document.getElementById('waiverParsedCount').textContent=S.waivers.length;
+  document.getElementById('waiverParsedList').innerHTML=S.waivers.map((p,i)=>`
+    <div class="waiver-item">
+      <span class="slot-label slot-${p.pos}">${p.pos}</span>
+      <span class="waiver-item-name">${p.name}</span>
+      <span class="waiver-item-meta">${p.team}</span>
+      <button class="waiver-rm" onclick="rmWaiver(${i})">&#215;</button>
+    </div>`).join('');
+}
+function rmWaiver(i){S.waivers.splice(i,1);svJ('cv_wv',S.waivers);renderParsed();updatePills();updateSB();}
+function clearWaivers(){S.waivers=[];svJ('cv_wv',[]);document.getElementById('waiverPaste').value='';document.getElementById('waiverParsedCard').style.display='none';updatePills();updateSB();toast('Waivers cleared');}
+function saveWaivers(){svJ('cv_wv',S.waivers);}
+
+function saveKey(){
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k){toast('Enter your API key');return;}
+  S.apiKey=k;localStorage.setItem('cv_key',k);updatePills();updateSB();toast('API key saved');
+}
+function saveSettings(){
+  S.scoring=document.getElementById('scoringType').value;
+  S.leagueSize=document.getElementById('leagueSize').value;
+  S.extraCtx=document.getElementById('extraContext').value;
+  localStorage.setItem('cv_sc',S.scoring);
+  localStorage.setItem('cv_ls',S.leagueSize);
+  localStorage.setItem('cv_ex',S.extraCtx);
+}
+function clearAll(){['cv_st','cv_bn','cv_wv','cv_key','cv_sc','cv_ls','cv_ex'].forEach(k=>localStorage.removeItem(k));location.reload();}
+
+function buildSys(){
+  const st=S.starters.filter(s=>s.name);
+  const bn=S.bench.filter(s=>s.name);
+  const scLabels={'roto':'Rotisserie','h2h_cats':'Head-to-Head Categories','h2h_pts':'Head-to-Head Points'};
+  let sys=`You are Court Vision, an expert NBA fantasy basketball advisor. Be direct and specific. Give clear START/SIT/ADD/DROP verdicts. Always name players and back picks with stats, schedule, and role reasoning.
+
+League: ${scLabels[S.scoring]||S.scoring}, ${S.leagueSize} teams.
+${S.extraCtx?'Extra context: '+S.extraCtx:''}
+
+ROSTER:`;
+  if(st.length){
+    sys+='\nStarters:\n'+st.map(s=>`- [${s.slot}] ${s.name}${s.team?' ('+s.team+(s.pos?', '+s.pos:'')+')'  :''}${s.status!=='active'?' STATUS:'+s.status.toUpperCase():''}`).join('\n');
+  } else { sys+='\nNo starters entered.'; }
+  if(bn.length) sys+='\nBench:\n'+bn.map(s=>`- ${s.name}${s.team?' ('+s.team+(s.pos?', '+s.pos:'')+')':''} ${s.status!=='active'?'STATUS:'+s.status.toUpperCase():''}`).join('\n');
+  if(S.waivers.length){
+    sys+='\n\nWAIVER WIRE (available in their CBS league):\n'+S.waivers.map(p=>`- ${p.name}${p.team!=='?'?' ('+p.team+(p.pos!=='?'?', '+p.pos:'')+')'  :''}`).join('\n');
+    sys+='\n\nOnly recommend players from the waiver list above — those are the ones actually available in their league.';
+  } else {
+    sys+='\n\nNo waiver list provided. Use your NBA knowledge to recommend generally available players, and note they should confirm availability on CBS.';
+  }
+  sys+=`\n\nToday: ${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
+  return sys;
+}
+
+const PROMPTS={
+  optimize:'Analyze my current lineup. Tell me exactly who to start this week and who to sit, with a one-line reason for each player. Flag any injury concerns.',
+  waivers:'Looking at my waiver wire list, which players should I add for my roster needs? For each pickup, tell me who to drop to make room. Give me your top 3 recommendations ranked.',
+  drops:'Which players on my roster should I consider dropping? Find the weakest links, explain why, and suggest what to look for as replacements.',
+  injuries:'Go through my roster and flag every injury concern. For GTD/questionable players, give me a contingency plan.',
+  schedule:'Which of my players have the best schedule this week in terms of game count and opponent strength? Who should I prioritize starting?',
+  full:'Give me a complete team analysis: best starting lineup this week, top waiver adds, anyone to drop, and injury concerns. Be thorough.',
+};
+
+function triggerAdvice(type){
+  saveRoster();
+  const msg=PROMPTS[type]||type;
+  document.getElementById('aiInput').value=msg;
+  if(!document.getElementById('page-advisor').classList.contains('active')) nav('advisor');
+  sendMsg();
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('aiInput');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  if(!S.apiKey){nav('settings');toast('Add your Anthropic API key in Settings first');return;}
+  inp.value='';
+  addMsg('user',esc(msg));
+  S.chat.push({role:'user',content:msg});
+  document.getElementById('sendBtn').disabled=true;
+  const tid=addTyping();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:buildSys(),messages:S.chat.slice(-12)})
+    });
+    const d=await res.json();
+    rmEl(tid);
+    if(d.error)throw new Error(d.error.message);
+    const reply=d.content?.[0]?.text||'No response.';
+    S.chat.push({role:'assistant',content:reply});
+    addMsg('ai',fmt(reply));
+  }catch(e){
+    rmEl(tid);
+    addMsg('ai',`<span style="color:var(--orange)">Error: ${esc(e.message)}</span><br><span style="color:var(--muted);font-size:12px;">Check your API key in Settings.</span>`);
+  }finally{document.getElementById('sendBtn').disabled=false;}
+}
+
+function fmt(t){
+  return t
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^### (.+)$/gm,'<div style="font-weight:600;color:var(--accent);margin:8px 0 3px;">$1</div>')
+    .replace(/^## (.+)$/gm,'<div style="font-weight:600;color:var(--accent);margin:10px 0 4px;font-size:14px;">$1</div>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)+/g,s=>'<ul>'+s+'</ul>')
+    .replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function addMsg(role,html){
+  const m=document.getElementById('aiMsgs');
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  d.innerHTML=`<div class="av ${role}">${role==='ai'?'CV':'Me'}</div><div class="bubble">${html}</div>`;
+  m.appendChild(d);m.scrollTop=m.scrollHeight;
+}
+function addTyping(){
+  const id='ty'+Date.now();
+  const m=document.getElementById('aiMsgs');
+  const d=document.createElement('div');
+  d.className='msg ai';d.id=id;
+  d.innerHTML='<div class="av ai">CV</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  m.appendChild(d);m.scrollTop=m.scrollHeight;return id;
+}
+function rmEl(id){document.getElementById(id)?.remove();}
+function aiKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+
+function updateCtx(){
+  const all=[...S.starters.filter(s=>s.name),...S.bench.filter(s=>s.name)];
+  const cr=document.getElementById('ctxRoster');
+  cr.innerHTML=all.length?all.map(p=>`<div class="ctx-player"><span class="slot-label slot-${p.slot}" style="font-size:10px;padding:2px 5px;">${p.slot}</span><span class="ctx-name">${esc(p.name)}</span>${p.status!=='active'?`<span class="ctx-status ${p.status}">${p.status.toUpperCase()}</span>`:''}</div>`).join(''):'No roster yet. <a href="#" onclick="nav(\'roster\');return false;" style="color:var(--accent)">Add players</a>';
+  const cw=document.getElementById('ctxWaivers');
+  cw.innerHTML=S.waivers.length?`<div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent)">${S.waivers.length}</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:6px;">players available</div><div style="font-size:12px;color:var(--dim)">${S.waivers.slice(0,6).map(p=>esc(p.name)).join(', ')}${S.waivers.length>6?' +more':''}</div>`:'No waivers yet. <a href="#" onclick="nav(\'waivers\');return false;" style="color:var(--accent)">Paste list</a>';
+}
+function updateReady(){
+  const ro=S.starters.some(s=>s.name)||S.bench.some(s=>s.name);
+  const wo=S.waivers.length>0;
+  const ko=!!S.apiKey;
+  const set=(id,ok,tgt)=>{
+    const el=document.getElementById(id);
+    el.className='ready-item '+(ok?'done':'warn');
+    el.querySelector('.ready-check').textContent=ok?'✓':'!';
+    el.onclick=ok?null:()=>nav(tgt);
+  };
+  set('ready-roster',ro,'roster');
+  set('ready-waivers',wo,'waivers');
+  set('ready-key',ko,'settings');
+}
+function updatePills(){
+  const r=S.starters.filter(s=>s.name).length+S.bench.filter(s=>s.name).length;
+  const rp=document.getElementById('rosterPill');
+  rp.className='pill'+(r>0?' ok':'');
+  document.getElementById('rosterPillTxt').textContent=r>0?r+' players':'No roster';
+  const wp=document.getElementById('waiverPill');
+  wp.className='pill'+(S.waivers.length>0?' ok':'');
+  document.getElementById('waiverPillTxt').textContent=S.waivers.length>0?S.waivers.length+' waivers':'No waivers';
+  const kp=document.getElementById('keyPill');
+  kp.className='pill'+(S.apiKey?' ok':' warn');
+  document.getElementById('keyPillTxt').textContent=S.apiKey?'AI ready':'No API key';
+}
+function updateSB(){
+  const r=S.starters.filter(s=>s.name).length+S.bench.filter(s=>s.name).length;
+  document.getElementById('sbRosterCount').textContent=r;
+  document.getElementById('sbWaiverCount').textContent=S.waivers.length;
+  const ai=document.getElementById('sbAiStatus');
+  ai.textContent=S.apiKey?'ready':'not set up';
+  ai.style.color=S.apiKey?'var(--green)':'var(--muted)';
+}
+
+function loadDemo(){
+  S.starters=[
+    {slot:'PG',name:'Tyrese Haliburton',team:'IND',pos:'PG',status:'active'},
+    {slot:'SG',name:'Devin Booker',team:'PHX',pos:'SG',status:'active'},
+    {slot:'SF',name:'Jayson Tatum',team:'BOS',pos:'SF',status:'gtd'},
+    {slot:'PF',name:'Anthony Davis',team:'LAL',pos:'PF',status:'active'},
+    {slot:'C',name:'Nikola Jokic',team:'DEN',pos:'C',status:'active'},
+    {slot:'G',name:'Luka Doncic',team:'DAL',pos:'PG',status:'active'},
+    {slot:'F',name:'Mikal Bridges',team:'NYK',pos:'SF',status:'active'},
+    {slot:'UTIL',name:'Bam Adebayo',team:'MIA',pos:'C',status:'active'},
+  ];
+  S.bench=[
+    {slot:'BN',name:'Jordan Poole',team:'WAS',pos:'SG',status:'active'},
+    {slot:'BN',name:'OG Anunoby',team:'TOR',pos:'SF',status:'out'},
+    {slot:'BN',name:'Daniel Gafford',team:'WAS',pos:'C',status:'active'},
+    {slot:'BN',name:'Marcus Smart',team:'MEM',pos:'PG',status:'gtd'},
+  ];
+  S.waivers=[
+    {name:'Immanuel Quickley',team:'TOR',pos:'PG'},
+    {name:'Nic Claxton',team:'BRK',pos:'C'},
+    {name:'Caris LeVert',team:'CLE',pos:'SG'},
+    {name:'Brook Lopez',team:'MIL',pos:'C'},
+    {name:'Josh Green',team:'DAL',pos:'SF'},
+    {name:'Saddiq Bey',team:'ATL',pos:'SF'},
+    {name:'Kevon Looney',team:'GSW',pos:'C'},
+    {name:'Reggie Jackson',team:'LAC',pos:'PG'},
+    {name:'Aaron Wiggins',team:'OKC',pos:'SG'},
+    {name:'Talen Horton-Tucker',team:'UTA',pos:'SG'},
+  ];
+  svJ('cv_st',S.starters);svJ('cv_bn',S.bench);svJ('cv_wv',S.waivers);
+  buildStarters();buildBench();renderParsed();
+  document.getElementById('waiverParsedCard').style.display='block';
+  document.getElementById('waiverParsedCount').textContent=S.waivers.length;
+  updatePills();updateSB();
+  nav('advisor');
+  document.getElementById('advBadge').style.display='inline';
+  toast('Demo data loaded — try the quick buttons above!');
+}
+
+let _tt;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
